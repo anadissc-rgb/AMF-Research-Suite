@@ -2,21 +2,19 @@
 # AMF RESEARCH STUDIO — HOME DASHBOARD
 # ─────────────────────────────────────────────
 
-import streamlit as st
-
-from app.components.header import (
+from components.header import (
     render_header
 )
 
-from app.components.sidebar import (
+from components.sidebar import (
     render_sidebar
 )
 
-from app.utils.state import (
+from utils.state import (
     init_state
 )
 
-from app.utils.config import (
+from utils.config import (
     APP_VERSION
 )
 
