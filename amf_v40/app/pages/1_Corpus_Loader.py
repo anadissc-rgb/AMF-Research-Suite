@@ -8,19 +8,19 @@ import json
 
 from pathlib import Path
 
-from app.components.header import (
+from Components.header import (
     render_header
 )
 
-from app.components.sidebar import (
+from Components.sidebar import (
     render_sidebar
 )
 
-from app.utils.state import (
+from utils.state import (
     init_state
 )
 
-from app.utils.config import (
+from utils.config import (
     SUPPORTED_FORMATS
 )
 
