@@ -519,7 +519,12 @@ def run_falsification_tests(
         "bigram_entropy":              ent["bigram_entropy"],
         "voynich_h_unigram":           ent["unigram_entropy"],
         "baseline_h_unigram":          baseline["unigram_entropy"],
-        "zipf_alpha":                  zipf.get("alpha", "N/A"),
+        "zipf_alpha": float(
+    zipf.get("alpha")
+    or zipf.get("zipf_alpha")
+    or zipf.get("slope")
+    or 0.0
+),
         "zipf_r_squared": (
     zipf.get("r_squared")
     or zipf.get("r2")
