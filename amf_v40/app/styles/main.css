@@ -1,0 +1,22 @@
+/* ───────────────────────────────────── */
+/* AMF RESEARCH STUDIO THEME */
+/* ───────────────────────────────────── */
+
+body {
+    background-color: #0e1117;
+    color: #fafafa;
+}
+
+h1, h2, h3 {
+    color: #d4af37;
+}
+
+section[data-testid="stSidebar"] {
+    background-color: #111827;
+}
+
+.stMetric {
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 12px;
+}
