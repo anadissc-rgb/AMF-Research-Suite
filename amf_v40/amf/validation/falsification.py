@@ -520,7 +520,12 @@ def run_falsification_tests(
         "voynich_h_unigram":           ent["unigram_entropy"],
         "baseline_h_unigram":          baseline["unigram_entropy"],
         "zipf_alpha":                  zipf.get("alpha", "N/A"),
-        "zipf_r_squared":              zipf["r_squared"],
+        "zipf_r_squared": (
+    zipf.get("r_squared")
+    or zipf.get("r2")
+    or zipf.get("fit")
+    or "N/A"
+),
         "line_initial_biased_count":   len(biased["line_initial_biased"]),
         "jaccard_initial_final":       jaccard,
         "test_PP_order0":              pp_by_order.get(0, {}).get("test_perplexity", None),
