@@ -2,6 +2,8 @@
 # AMF RESEARCH STUDIO — HOME DASHBOARD
 # ─────────────────────────────────────────────
 
+import streamlit as st
+
 from components.header import (
     render_header
 )
@@ -118,6 +120,7 @@ if st.session_state.uploaded_filename:
     st.success(
         f"""
 Loaded Corpus:
+
 {st.session_state.uploaded_filename}
 """
     )
@@ -129,7 +132,7 @@ else:
     )
 
 # ─────────────────────────────────────────────
-# SYSTEM MODULES
+# RESEARCH MODULES
 # ─────────────────────────────────────────────
 
 st.markdown("---")
