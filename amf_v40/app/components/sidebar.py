@@ -4,7 +4,7 @@
 
 import streamlit as st
 
-from app.utils.config import (
+from utils.config import (
     AUTHOR,
     INSTITUTION
 )
