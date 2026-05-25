@@ -4,15 +4,14 @@
 
 import streamlit as st
 import tempfile
-import json
 
 from pathlib import Path
 
-from Components.header import (
+from components.header import (
     render_header
 )
 
-from Components.sidebar import (
+from components.sidebar import (
     render_sidebar
 )
 
@@ -155,7 +154,7 @@ Corpus loaded successfully:
             height=300
         )
 
-    except Exception as e:
+    except Exception:
 
         st.warning(
             "Preview unavailable."
