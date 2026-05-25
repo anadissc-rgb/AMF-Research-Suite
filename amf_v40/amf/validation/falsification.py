@@ -519,7 +519,12 @@ def run_falsification_tests(
         "bigram_entropy":              ent["bigram_entropy"],
         "voynich_h_unigram":           ent["unigram_entropy"],
         "baseline_h_unigram":          baseline["unigram_entropy"],
-        "zipf_alpha":                  zipf["alpha"],
+        "zipf_alpha": (
+    zipf.get("alpha")
+    or zipf.get("zipf_alpha")
+    or zipf.get("slope")
+    or "N/A"
+),
         "zipf_r_squared":              zipf["r_squared"],
         "line_initial_biased_count":   len(biased["line_initial_biased"]),
         "jaccard_initial_final":       jaccard,
