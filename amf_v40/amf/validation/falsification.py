@@ -525,11 +525,11 @@ def run_falsification_tests(
     or zipf.get("slope")
     or 0.0
 ),
-        "zipf_r_squared": (
+        "zipf_r_squared": float(
     zipf.get("r_squared")
     or zipf.get("r2")
     or zipf.get("fit")
-    or "N/A"
+    or 0.0
 ),
         "line_initial_biased_count":   len(biased["line_initial_biased"]),
         "jaccard_initial_final":       jaccard,
