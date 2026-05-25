@@ -7,7 +7,7 @@
 import streamlit as st
 import pandas as pd
 import json
-import asyncio
+import tempfile
 import sys
 
 from pathlib import Path
@@ -25,7 +25,8 @@ sys.path.append(str(ROOT_DIR))
 # ─────────────────────────────────────────────
 
 try:
-    from amf.validation.pipeline import AmanuensisOrchestrator
+
+    from amf.validation.pipeline import run_pipeline
 
 except Exception as e:
 
@@ -60,9 +61,10 @@ st.sidebar.title("AMF Console")
 
 st.sidebar.markdown("""
 ### Features
+- Entropy Analysis
+- Positional Analysis
+- Markov Analysis
 - DPAS Validation
-- Statistical Analysis
-- Symbolic Reconstruction
 - Falsification Engine
 - JSON Export
 """)
@@ -86,19 +88,6 @@ uploaded_text = st.text_area(
 )
 
 # ─────────────────────────────────────────────
-# SECTION SELECTOR
-# ─────────────────────────────────────────────
-
-section = st.selectbox(
-    "Select Manuscript Section",
-    [
-        "Balneological",
-        "Cosmological",
-        "Logistical_FoldOut"
-    ]
-)
-
-# ─────────────────────────────────────────────
 # RUN BUTTON
 # ─────────────────────────────────────────────
 
@@ -108,12 +97,11 @@ run_button = st.button(
 )
 
 # ─────────────────────────────────────────────
-# ANALYSIS EXECUTION
+# EXECUTION
 # ─────────────────────────────────────────────
 
 if run_button:
 
-    # Validate Input
     if not uploaded_text.strip():
 
         st.error(
@@ -122,175 +110,230 @@ if run_button:
 
         st.stop()
 
-    # Prepare EVA Lines
-    lines = [
-        line.strip()
-        for line in uploaded_text.splitlines()
-        if line.strip()
-    ]
+    try:
 
-    # Build Corpus
-    corpus = {
-        "folios": [
-            {
-                "folio_id": "GUI_INPUT",
-                "section": section,
-                "pipeline_type": "STREAMLIT_RUNTIME",
-                "eva_lines": lines
+        # ─────────────────────────────────────
+        # CREATE TEMP CORPUS FILE
+        # ─────────────────────────────────────
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+
+            tmpdir = Path(tmpdir)
+
+            corpus_path = tmpdir / "gui_corpus.json"
+
+            output_dir = tmpdir / "outputs"
+
+            # SIMPLE EVA CORPUS FORMAT
+            corpus_data = {
+                "metadata": {
+                    "transcription_version": "GUI_RUNTIME",
+                    "uncertainty_line_count": 0
+                },
+                "records": []
             }
-        ]
-    }
 
-    # Async Pipeline Wrapper
-    async def run_pipeline():
+            for idx, line in enumerate(
+                uploaded_text.splitlines()
+            ):
 
-        orchestrator = AmanuensisOrchestrator()
+                line = line.strip()
 
-        result = await orchestrator.run(
-            corpus,
-            {"folios": []}
-        )
+                if not line:
+                    continue
 
-        return result
+                corpus_data["records"].append({
+                    "folio": "GUI_INPUT",
+                    "line_id": idx + 1,
+                    "text": line,
+                    "section": "GUI_RUNTIME"
+                })
 
-    # Execute Pipeline
-    with st.spinner(
-        "Running AMF validation pipeline..."
-    ):
+            # SAVE TEMP CORPUS
+            with corpus_path.open(
+                "w",
+                encoding="utf-8"
+            ) as f:
 
-        try:
+                json.dump(
+                    corpus_data,
+                    f,
+                    indent=2,
+                    ensure_ascii=False
+                )
 
-            # Streamlit-safe async execution
-            result = asyncio.run(
-                run_pipeline()
+            # ─────────────────────────────────
+            # RUN AMF PIPELINE
+            # ─────────────────────────────────
+
+            with st.spinner(
+                "Running AMF validation pipeline..."
+            ):
+
+                result = run_pipeline(
+                    corpus_path=corpus_path,
+                    output_dir=output_dir,
+                    run_id="streamlit_gui_run"
+                )
+
+            st.success("Analysis Complete")
+
+            # ─────────────────────────────────
+            # VERIFIED RESULTS
+            # ─────────────────────────────────
+
+            verified = result.verified_results
+
+            entropy = verified["entropy"]
+
+            zipf = verified["zipf"]
+
+            markov = verified["markov"]
+
+            # ─────────────────────────────────
+            # METRICS
+            # ─────────────────────────────────
+
+            st.markdown("## Validation Metrics")
+
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+
+                st.metric(
+                    "Entropy",
+                    round(
+                        entropy["unigram_bits"],
+                        4
+                    )
+                )
+
+            with col2:
+
+                st.metric(
+                    "Zipf Alpha",
+                    round(
+                        zipf["alpha"],
+                        4
+                    )
+                )
+
+            with col3:
+
+                st.metric(
+                    "Markov Order",
+                    markov["optimal_order_test"]
+                )
+
+            # ─────────────────────────────────
+            # VERIFIED RESULTS
+            # ─────────────────────────────────
+
+            st.markdown("## Verified Results")
+
+            st.json(verified)
+
+            # ─────────────────────────────────
+            # HYPOTHESIS RESULTS
+            # ─────────────────────────────────
+
+            st.markdown("## Hypothesis Results")
+
+            st.json(
+                result.hypothesis_results
             )
 
-        except RuntimeError:
+            # ─────────────────────────────────
+            # WARNINGS
+            # ─────────────────────────────────
 
-            # Fallback for active event loops
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+            if result.warnings:
 
-            result = loop.run_until_complete(
-                run_pipeline()
+                st.markdown("## Warnings")
+
+                for w in result.warnings:
+
+                    st.warning(w)
+
+            # ─────────────────────────────────
+            # LIMITATIONS
+            # ─────────────────────────────────
+
+            st.markdown("## Limitations")
+
+            for lim in result.limitations:
+
+                st.info(lim)
+
+            # ─────────────────────────────────
+            # DATAFRAME OUTPUT
+            # ─────────────────────────────────
+
+            rows = []
+
+            rows.append({
+                "Entropy": entropy["unigram_bits"],
+                "Zipf Alpha": zipf["alpha"],
+                "Markov Order": markov["optimal_order_test"],
+                "Token Count": entropy["token_count"]
+            })
+
+            df = pd.DataFrame(rows)
+
+            st.markdown("## Summary Table")
+
+            st.dataframe(
+                df,
+                use_container_width=True
             )
 
-    st.success("Analysis Complete")
+            # ─────────────────────────────────
+            # CSV DOWNLOAD
+            # ─────────────────────────────────
 
-    # ─────────────────────────────────────────
-    # VALIDATION METRICS
-    # ─────────────────────────────────────────
+            csv = df.to_csv(index=False)
 
-    st.markdown("## Validation Metrics")
-
-    metrics = result.get(
-        "validation_metrics",
-        {}
-    )
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-
-        st.metric(
-            "Predictive Accuracy",
-            metrics.get(
-                "predictive_testing_accuracy",
-                "N/A"
+            st.download_button(
+                label="Download CSV",
+                data=csv,
+                file_name="amf_summary.csv",
+                mime="text/csv"
             )
-        )
 
-    with col2:
+            # ─────────────────────────────────
+            # JSON DOWNLOAD
+            # ─────────────────────────────────
 
-        st.metric(
-            "Chi-Square",
-            metrics.get(
-                "chi_square_statistic",
-                "N/A"
+            json_output = json.dumps(
+                {
+                    "verified_results":
+                        result.verified_results,
+
+                    "hypothesis_results":
+                        result.hypothesis_results,
+
+                    "warnings":
+                        result.warnings,
+
+                    "limitations":
+                        result.limitations
+                },
+                indent=2,
+                ensure_ascii=False
             )
-        )
 
-    with col3:
-
-        st.metric(
-            "p-Value",
-            metrics.get(
-                "statistical_p_value",
-                "N/A"
+            st.download_button(
+                label="Download JSON",
+                data=json_output,
+                file_name="amf_output.json",
+                mime="application/json"
             )
-        )
 
-    # ─────────────────────────────────────────
-    # JSON OUTPUT
-    # ─────────────────────────────────────────
+    except Exception as e:
 
-    st.markdown("## JSON Output")
+        st.error("Pipeline execution failed.")
 
-    st.json(result)
-
-    # ─────────────────────────────────────────
-    # TABLE OUTPUT
-    # ─────────────────────────────────────────
-
-    rows = []
-
-    for folio in result.get(
-        "linguistic_matrices",
-        []
-    ):
-
-        for row in folio.get(
-            "data_set",
-            []
-        ):
-
-            rows.append(row)
-
-    if rows:
-
-        st.markdown(
-            "## Token Analysis Table"
-        )
-
-        df = pd.DataFrame(rows)
-
-        st.dataframe(
-            df,
-            use_container_width=True
-        )
-
-        # CSV DOWNLOAD
-        csv = df.to_csv(index=False)
-
-        st.download_button(
-            label="Download CSV",
-            data=csv,
-            file_name="amf_analysis.csv",
-            mime="text/csv"
-        )
-
-    else:
-
-        st.warning(
-            "No linguistic matrix rows generated."
-        )
-
-    # ─────────────────────────────────────────
-    # RAW JSON DOWNLOAD
-    # ─────────────────────────────────────────
-
-    json_data = json.dumps(
-        result,
-        indent=2,
-        ensure_ascii=False
-    )
-
-    st.download_button(
-        label="Download JSON",
-        data=json_data,
-        file_name="amf_output.json",
-        mime="application/json"
-    )
+        st.exception(e)
 
 # ─────────────────────────────────────────────
 # FOOTER
