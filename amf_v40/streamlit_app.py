@@ -63,6 +63,7 @@ st.sidebar.markdown("""
 ### Features
 - Entropy Analysis
 - Positional Analysis
+- Adjacency Analysis
 - Markov Analysis
 - DPAS Validation
 - Falsification Engine
@@ -113,7 +114,7 @@ if run_button:
     try:
 
         # ─────────────────────────────────────
-        # CREATE TEMP CORPUS FILE
+        # TEMPORARY WORKSPACE
         # ─────────────────────────────────────
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -124,11 +125,17 @@ if run_button:
 
             output_dir = tmpdir / "outputs"
 
-            # SIMPLE EVA CORPUS FORMAT
+            # ─────────────────────────────────
+            # BUILD TEMP EVA CORPUS
+            # ─────────────────────────────────
+
             corpus_data = {
                 "metadata": {
                     "transcription_version": "GUI_RUNTIME",
-                    "uncertainty_line_count": 0
+                    "uncertainty_line_count": 0,
+                    "source_files": [
+                        "streamlit_input"
+                    ]
                 },
                 "records": []
             }
@@ -149,7 +156,10 @@ if run_button:
                     "section": "GUI_RUNTIME"
                 })
 
+            # ─────────────────────────────────
             # SAVE TEMP CORPUS
+            # ─────────────────────────────────
+
             with corpus_path.open(
                 "w",
                 encoding="utf-8"
@@ -163,7 +173,7 @@ if run_button:
                 )
 
             # ─────────────────────────────────
-            # RUN AMF PIPELINE
+            # RUN PIPELINE
             # ─────────────────────────────────
 
             with st.spinner(
@@ -266,7 +276,7 @@ if run_button:
                 st.info(lim)
 
             # ─────────────────────────────────
-            # DATAFRAME OUTPUT
+            # SUMMARY TABLE
             # ─────────────────────────────────
 
             rows = []
