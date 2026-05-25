@@ -3,30 +3,46 @@ import pandas as pd
 import json
 import asyncio
 
-# Import your AMF pipeline
+# Import AMF pipeline
 from amf.validation.pipeline import AmanuensisOrchestrator
 
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────
 # PAGE CONFIG
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────
 
 st.set_page_config(
     page_title="AMF Research Console",
     layout="wide"
 )
 
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────
 # HEADER
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────
 
 st.title("Amanuensis Model Framework (AMF)")
+
 st.subheader(
     "Computational Manuscript Validation Console"
 )
 
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────
+# SIDEBAR
+# ─────────────────────────────────────
+
+st.sidebar.title("AMF Console")
+
+st.sidebar.markdown("""
+### Features
+- DPAS Validation
+- Statistical Analysis
+- Symbolic Reconstruction
+- Falsification Engine
+- JSON Output
+""")
+
+# ─────────────────────────────────────
 # EVA INPUT
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────
 
 st.markdown("## EVA Manuscript Input")
 
@@ -35,9 +51,9 @@ uploaded_text = st.text_area(
     height=250
 )
 
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────
 # SECTION SELECTOR
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────
 
 section = st.selectbox(
     "Select Manuscript Section",
@@ -48,15 +64,15 @@ section = st.selectbox(
     ]
 )
 
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────
 # ANALYSIS BUTTON
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────
 
 run_button = st.button("Run AMF Analysis")
 
-# ─────────────────────────────────────────────
-# PIPELINE EXECUTION
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────
+# EXECUTION
+# ─────────────────────────────────────
 
 if run_button:
 
@@ -92,15 +108,15 @@ if run_button:
 
         return result
 
-    with st.spinner("Running AMF pipeline..."):
+    with st.spinner("Running AMF validation pipeline..."):
 
         result = asyncio.run(run_pipeline())
 
     st.success("Analysis Complete")
 
-    # ─────────────────────────────────────────
+    # ─────────────────────────────────
     # VALIDATION METRICS
-    # ─────────────────────────────────────────
+    # ─────────────────────────────────
 
     st.markdown("## Validation Metrics")
 
@@ -126,17 +142,17 @@ if run_button:
             metrics["statistical_p_value"]
         )
 
-    # ─────────────────────────────────────────
+    # ─────────────────────────────────
     # JSON OUTPUT
-    # ─────────────────────────────────────────
+    # ─────────────────────────────────
 
-    st.markdown("## AMF JSON Output")
+    st.markdown("## JSON Output")
 
     st.json(result)
 
-    # ─────────────────────────────────────────
-    # TABLE VIEW
-    # ─────────────────────────────────────────
+    # ─────────────────────────────────
+    # TABLE OUTPUT
+    # ─────────────────────────────────
 
     rows = []
 
@@ -153,7 +169,6 @@ if run_button:
 
         st.dataframe(df)
 
-        # CSV DOWNLOAD
         csv = df.to_csv(index=False)
 
         st.download_button(
@@ -163,9 +178,9 @@ if run_button:
             mime="text/csv"
         )
 
-    # ─────────────────────────────────────────
-    # RAW JSON DOWNLOAD
-    # ─────────────────────────────────────────
+    # ─────────────────────────────────
+    # JSON DOWNLOAD
+    # ─────────────────────────────────
 
     json_data = json.dumps(
         result,
