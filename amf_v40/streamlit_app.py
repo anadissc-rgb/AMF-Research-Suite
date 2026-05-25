@@ -3,6 +3,14 @@ import pandas as pd
 import json
 import asyncio
 
+# Import AMF pipelineimport sys
+from pathlib import Path
+
+# Add project root to Python path
+ROOT_DIR = Path(__file__).resolve().parent
+
+sys.path.append(str(ROOT_DIR))
+
 # Import AMF pipeline
 from amf.validation.pipeline import AmanuensisOrchestrator
 
