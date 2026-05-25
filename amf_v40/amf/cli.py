@@ -1,3 +1,6 @@
+# © 2026 Anadi Chakraborty
+# Amanuensis Model Framework (AMF)
+# Proprietary Research Software
 """
 amf.cli
 =======
