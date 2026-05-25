@@ -114,7 +114,7 @@ if run_button:
     try:
 
         # ─────────────────────────────────────
-        # TEMPORARY WORKSPACE
+        # TEMP WORKSPACE
         # ─────────────────────────────────────
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -126,7 +126,7 @@ if run_button:
             output_dir = tmpdir / "outputs"
 
             # ─────────────────────────────────
-            # BUILD TEMP EVA CORPUS
+            # BUILD TEMP CORPUS
             # ─────────────────────────────────
 
             corpus_data = {
@@ -140,9 +140,8 @@ if run_button:
                 "records": []
             }
 
-            for idx, line in enumerate(
-                uploaded_text.splitlines()
-            ):
+            # CREATE TOKEN RECORDS
+            for line in uploaded_text.splitlines():
 
                 line = line.strip()
 
@@ -151,7 +150,6 @@ if run_button:
 
                 corpus_data["records"].append({
                     "folio": "GUI_INPUT",
-                    "line_id": idx + 1,
                     "text": line,
                     "section": "GUI_RUNTIME"
                 })
