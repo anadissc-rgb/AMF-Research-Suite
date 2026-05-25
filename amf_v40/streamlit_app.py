@@ -126,7 +126,7 @@ if run_button:
             output_dir = tmpdir / "outputs"
 
             # ─────────────────────────────────
-            # BUILD TEMP CORPUS
+            # BUILD CORPUS
             # ─────────────────────────────────
 
             corpus_data = {
@@ -140,8 +140,11 @@ if run_button:
                 "records": []
             }
 
-            # CREATE TOKEN RECORDS
-            for line in uploaded_text.splitlines():
+            # CREATE VALID TOKEN RECORDS
+            for idx, line in enumerate(
+                uploaded_text.splitlines(),
+                start=1
+            ):
 
                 line = line.strip()
 
@@ -149,13 +152,23 @@ if run_button:
                     continue
 
                 corpus_data["records"].append({
+
                     "folio": "GUI_INPUT",
-                    "text": line,
-                    "section": "GUI_RUNTIME"
+
+                    "section": "P",
+
+                    "line": str(idx),
+
+                    "transcriber": "STREAMLIT",
+
+                    "raw_line": line,
+
+                    "tokens": line.split()
+
                 })
 
             # ─────────────────────────────────
-            # SAVE TEMP CORPUS
+            # SAVE CORPUS
             # ─────────────────────────────────
 
             with corpus_path.open(
@@ -280,10 +293,19 @@ if run_button:
             rows = []
 
             rows.append({
-                "Entropy": entropy["unigram_bits"],
-                "Zipf Alpha": zipf["alpha"],
-                "Markov Order": markov["optimal_order_test"],
-                "Token Count": entropy["token_count"]
+
+                "Entropy":
+                    entropy["unigram_bits"],
+
+                "Zipf Alpha":
+                    zipf["alpha"],
+
+                "Markov Order":
+                    markov["optimal_order_test"],
+
+                "Token Count":
+                    entropy["token_count"]
+
             })
 
             df = pd.DataFrame(rows)
