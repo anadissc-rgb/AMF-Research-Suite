@@ -268,9 +268,22 @@ def run_pipeline(
             "type_count":               ent["type_count"],
         },
         "zipf": {
-            "alpha":     zipf["alpha"],
-            "r_squared": zipf["r_squared"],
-        },
+
+    "alpha": float(
+        zipf.get("alpha")
+        or zipf.get("zipf_alpha")
+        or zipf.get("slope")
+        or 0.0
+    ),
+
+    "r_squared": float(
+        zipf.get("r_squared")
+        or zipf.get("r2")
+        or zipf.get("fit")
+        or 0.0
+    ),
+
+},
         "positional": {
             "total_lines":                  pos_stats.total_lines,
             "sections_found":               list(pos_stats.section_profiles.keys()),
