@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  amf:
+    build: .
+    image: amf_v40:latest
+    container_name: amf_research
+    ports:
+      - "8888:8888"    # JupyterLab
+    volumes:
+      # Mount local data directory — corpus files stay on host
+      - ./data:/workspace/data
+      - ./outputs:/workspace/outputs
+      # Mount source for live editing
+      - ./amf:/workspace/amf
+      - ./notebooks:/workspace/notebooks
+    environment:
+      - PYTHONPATH=/workspace
+      - AMF_DATA_DIR=/workspace/data
+      - AMF_OUTPUT_DIR=/workspace/outputs
+    restart: unless-stopped
+
+  # Optional: run the full validation pipeline headlessly
+  pipeline:
+    build: .
+    image: amf_v40:latest
+    container_name: amf_pipeline
+    command: python -m amf.validation.pipeline --config config/default.yaml
+    volumes:
+      - ./data:/workspace/data
+      - ./outputs:/workspace/outputs
+    environment:
+      - PYTHONPATH=/workspace
+    profiles:
+      - pipeline   # only runs with: docker compose --profile pipeline up

@@ -1,0 +1,61 @@
+# AMF v4.0 — Default Pipeline Configuration
+# ==========================================
+# Edit this file to customize pipeline behavior.
+# All settings have documented defaults.
+
+corpus:
+  # Path to processed corpus JSON (output of amf.corpus.ingest)
+  path: "data/processed/corpus.json"
+
+  # Use clean tokens (uncertainty markers stripped) for analysis.
+  # When false, uncertainty markers are preserved and flagged.
+  # Recommendation: run both and compare; document which is used.
+  use_clean_tokens: true
+
+output:
+  # Directory for all pipeline outputs
+  directory: "outputs/"
+
+  # Save full per-token DPAS validation results (can be large: ~50MB for full corpus)
+  save_full_dpas_results: false
+
+analysis:
+  entropy:
+    enabled: true
+    # Random baseline for comparison: seed must be fixed and reported
+    baseline_seed: 42
+
+  positional:
+    enabled: true
+    # Minimum token frequency for positional bias reporting
+    min_count: 10
+    # Minimum positional rate for a token to be flagged as biased
+    min_rate: 0.40
+    # Number of top entries per category
+    top_n: 30
+
+  adjacency:
+    enabled: true
+    top_n: 30
+    # Minimum bigram frequency for PMI computation (lower = noisier estimates)
+    min_pmi_count: 5
+
+  markov:
+    enabled: true
+    max_order: 4
+    # Laplace smoothing parameter. Higher = more smoothing.
+    # Must be reported alongside all perplexity values.
+    smoothing: 1.0
+    # TODO: implement train/test split. Until then, all perplexity
+    # values are in-sample estimates.
+
+  dpas:
+    enabled: true
+    # Coverage threshold for model support determination.
+    # This value must match COVERAGE_THRESHOLD in amf/dpas/constraints.py.
+    # Changing it here does NOT change the value used in validation code —
+    # that must be changed in the source file.
+    coverage_threshold: 0.70
+
+logging:
+  level: "INFO"   # DEBUG | INFO | WARNING | ERROR
