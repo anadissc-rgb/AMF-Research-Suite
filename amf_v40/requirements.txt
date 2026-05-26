@@ -18,7 +18,7 @@ statsmodels>=0.14
 powerlaw>=1.5
 
 # NETWORK & GRAPH ANALYSIS
-networkx>=3.2
+networkx==3.2.1
 
 # graph intelligence support
 
