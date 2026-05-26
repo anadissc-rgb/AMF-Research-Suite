@@ -1,122 +1,193 @@
+# ─────────────────────────────────────────────
+# AMF v4.0 — pyproject.toml
+# Amanuensis Model Framework
+# Production Build Configuration
+# ─────────────────────────────────────────────
+
 [build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta
+
+requires = [
+    "setuptools>=68",
+    "wheel"
+]
+
+build-backend = "setuptools.build_meta"
+
+# ─────────────────────────────────────────────
+# PROJECT METADATA
+# ─────────────────────────────────────────────
 
 [project]
-name = "amf-v40"
-version = "4.0.0-alpha"
-description = "Amanuensis Model Framework: computational analysis of Voynichese"
-readme = "README.md"
-license = { file = "LICENSE" }
-authors = [
-  { name = "Anadi Chakraborty", email = "" },
-]
-maintainers = [
-  { name = "Anadi Chakraborty" },
-]
 
-[project.urls]
-Homepage   = "https://github.com/anadiChakraborty/amf_v40"
-Repository = "https://github.com/anadiChakraborty/amf_v40"
-Issues     = "https://github.com/anadiChakraborty/amf_v40/issues"
-requires-python = ">=3.10"
+name = "amf-research-suite"
+
+version = "4.0.0"
+
+description = """
+Amanuensis Model Framework (AMF)
+Computational Manuscript Validation
+and Research Environment
+"""
+
+readme = "README.md"
+
+requires-python = ">=3.11"
+
+license = { text = "MIT" }
+
+authors = [
+
+    {
+        name = "AMF Research Team"
+    }
+
+]
 
 keywords = [
-    "voynich", "digital-humanities", "computational-linguistics",
-    "manuscript-studies", "codicology", "nlp"
+
+    "voynich",
+    "manuscript",
+    "digital-humanities",
+    "computational-linguistics",
+    "research",
+    "streamlit",
+    "nlp",
+    "knowledge-graph",
+    "manuscript-intelligence"
+
 ]
 
 classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Science/Research",
-    "Topic :: Scientific/Engineering :: Information Analysis",
-    "License :: Other/Proprietary License",
-    "Programming Language :: Python :: 3.10",
+
+    "Programming Language :: Python :: 3",
+
     "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
+
+    "License :: OSI Approved :: MIT License",
+
+    "Operating System :: OS Independent",
+
+    "Framework :: Streamlit",
+
+    "Topic :: Scientific/Engineering",
+
+    "Topic :: Text Processing :: Linguistic"
+
 ]
+
+# ─────────────────────────────────────────────
+# CORE DEPENDENCIES
+# ─────────────────────────────────────────────
 
 dependencies = [
-    # Corpus & text processing
-    "numpy>=1.26",
-    "scipy>=1.12",
-    "pandas>=2.1",
 
-    # Statistical analysis
-    "statsmodels>=0.14",
-    "powerlaw>=1.5",       # Zipf/power-law fitting
+    # CORE SCIENTIFIC STACK
 
-    # Graph analysis (adjacency networks)
-    "networkx>=3.2",
+    "numpy==1.26.4",
 
-    # Visualization
-    "matplotlib>=3.8",
-    "seaborn>=0.13",
-    "plotly>=5.18",
+    "pandas==2.2.1",
 
-    # NLP utilities (for baseline comparisons)
-    "nltk>=3.8",
+    "scipy==1.12.0",
 
-    # Configuration
-    "pyyaml>=6.0",
-    "pydantic>=2.5",
+    # STATISTICS
 
-    # Output rendering
-    "playwright>=1.40",    # Background image generation
+    "statsmodels==0.14.1",
 
-    # Notebook support
-    "jupyter>=1.0",
-    "ipykernel>=6.28",
+    "powerlaw==1.5",
+
+    # VISUALIZATION
+
+    "matplotlib==3.8.3",
+
+    "plotly==5.19.0",
+
+    "kaleido==0.2.1",
+
+    "Pillow==10.2.0",
+
+    # NETWORK ANALYSIS
+
+    "networkx==3.2.1",
+
+    # STREAMLIT
+
+    "streamlit==1.32.2",
+
+    # NLP
+
+    "nltk==3.8.1",
+
+    # CONFIG
+
+    "pyyaml==6.0.1",
+
+    "pydantic==2.6.1"
+
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.4",
-    "pytest-cov>=4.1",
-    "ruff>=0.1",           # Linting
-    "mypy>=1.7",           # Type checking
-    "black>=23.0",
-    "pre-commit>=3.5",
-]
+# ─────────────────────────────────────────────
+# OPTIONAL URLS
+# ─────────────────────────────────────────────
 
-docs = [
-    "mkdocs>=1.5",
-    "mkdocs-material>=9.4",
-    "mkdocstrings[python]>=0.24",
-]
+[project.urls]
 
-[project.scripts]
-# Unified CLI — primary entry point (all subcommands)
-amf              = "amf.cli:main"
+Homepage = "https://github.com"
 
-# Individual module entry points (also available as subcommands via `amf`)
-amf-ingest       = "amf.corpus.ingest:main"
-amf-entropy      = "amf.stats.entropy:main"
-amf-positional   = "amf.stats.positional:main"
-amf-adjacency    = "amf.stats.adjacency:main"
-amf-markov       = "amf.stats.markov:main"
-amf-dpas         = "amf.dpas.validator:main"
-amf-falsify      = "amf.validation.falsification:main"
-amf-significance = "amf.stats.significance:main"
-amf-pipeline     = "amf.validation.pipeline:main"
-amf-report       = "amf.validation.report:main"
-amf-preregister  = "amf.validation.preregistration:main"
-amf-render       = "amf.render.generate_bg:main"
+Documentation = "https://github.com"
+
+Repository = "https://github.com"
+
+Issues = "https://github.com"
+
+# ─────────────────────────────────────────────
+# SETUPTOOLS
+# ─────────────────────────────────────────────
+
+[tool.setuptools]
+
+include-package-data = true
+
+# ─────────────────────────────────────────────
+# PACKAGE DISCOVERY
+# ─────────────────────────────────────────────
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["amf*"]
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "--cov=amf --cov-report=term-missing"
+where = ["."]
+
+include = [
+
+    "amf*",
+    "app*"
+
+]
+
+# ─────────────────────────────────────────────
+# BLACK FORMATTER
+# ─────────────────────────────────────────────
+
+[tool.black]
+
+line-length = 88
+
+target-version = ["py311"]
+
+# ─────────────────────────────────────────────
+# RUFF LINTER
+# ─────────────────────────────────────────────
 
 [tool.ruff]
-line-length = 88
-target-version = "py310"
-select = ["E", "F", "W", "I", "N", "UP"]
 
-[tool.mypy]
-python_version = "3.10"
-strict = true
-ignore_missing_imports = true
+line-length = 88
+
+target-version = "py311"
+
+# ─────────────────────────────────────────────
+# PYTEST
+# ─────────────────────────────────────────────
+
+[tool.pytest.ini_options]
+
+testpaths = ["tests"]
+
+python_files = ["test_*.py"]
