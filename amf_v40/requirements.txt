@@ -24,6 +24,7 @@ networkx>=3.2
 matplotlib>=3.8
 plotly>=5.18
 kaleido>=0.2
+Pillow>=10.0
 
 # STREAMLIT GUI
 streamlit>=1.32
