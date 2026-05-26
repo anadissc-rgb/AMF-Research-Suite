@@ -1,10 +1,11 @@
 # ─────────────────────────────────────────────
 # AMF STATISTICS LAB
+# Unified Multi-Format Pipeline Execution
 # ─────────────────────────────────────────────
 
 import streamlit as st
-from pathlib import Path
 import json
+from pathlib import Path
 
 from components.header import (
     render_header
@@ -19,7 +20,7 @@ from utils.state import (
 )
 
 # ─────────────────────────────────────────────
-# AMF IMPORT
+# AMF PIPELINE IMPORT
 # ─────────────────────────────────────────────
 
 try:
@@ -74,6 +75,7 @@ The Statistics Lab performs:
 - Markov modeling
 - DPAS validation
 - falsification testing
+- manuscript statistical analysis
 """)
 
 # ─────────────────────────────────────────────
@@ -97,79 +99,58 @@ uploaded_filename = (
 )
 
 # ─────────────────────────────────────────────
-# FILE VALIDATION
+# CORPUS STATUS
 # ─────────────────────────────────────────────
 
 st.markdown("---")
 
 st.subheader("Corpus Validation")
 
-file_extension = (
-    uploaded_filename
-    .split(".")[-1]
-    .lower()
-)
-
 col1, col2 = st.columns(2)
 
 with col1:
 
     st.metric(
-        "File",
+        "Source File",
         uploaded_filename
     )
 
 with col2:
 
     st.metric(
-        "Type",
-        file_extension.upper()
+        "Pipeline Format",
+        "AMF JSON"
     )
 
 # ─────────────────────────────────────────────
-# JSON ONLY
-# ─────────────────────────────────────────────
-
-if file_extension != "json":
-
-    st.error("""
-Statistics Lab currently supports
-ONLY structured JSON corpora.
-
-Please upload:
-
-• EVA JSON corpus
-• structured manuscript corpus
-• AMF-compatible JSON dataset
-
-TXT/PDF/CSV support will be added
-in future AI ingestion layers.
-""")
-
-    st.stop()
-
-# ─────────────────────────────────────────────
-# JSON VALIDATION
+# VALIDATION
 # ─────────────────────────────────────────────
 
 try:
 
     with open(
+
         corpus_path,
+
         "r",
+
         encoding="utf-8"
+
     ) as f:
 
-        json.load(f)
+        payload = json.load(f)
 
-    st.success(
-        "JSON corpus validated."
-    )
+    st.success("""
+Corpus successfully converted into
+AMF-compatible JSON structure.
+
+Pipeline ready.
+""")
 
 except Exception as e:
 
     st.error(
-        "Invalid JSON corpus."
+        "Corpus validation failed."
     )
 
     st.exception(e)
@@ -177,7 +158,77 @@ except Exception as e:
     st.stop()
 
 # ─────────────────────────────────────────────
-# RUN ANALYSIS
+# CORPUS METADATA
+# ─────────────────────────────────────────────
+
+st.markdown("---")
+
+st.subheader("Corpus Metadata")
+
+metadata = payload.get(
+    "metadata",
+    {}
+)
+
+records = payload.get(
+    "records",
+    []
+)
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+
+    st.metric(
+
+        "Tokens",
+
+        metadata.get(
+            "token_count",
+            len(records)
+        )
+
+    )
+
+with col2:
+
+    st.metric(
+
+        "Records",
+
+        len(records)
+
+    )
+
+with col3:
+
+    st.metric(
+
+        "Source Files",
+
+        len(
+            metadata.get(
+                "source_files",
+                []
+            )
+        )
+
+    )
+
+# ─────────────────────────────────────────────
+# CORPUS PREVIEW
+# ─────────────────────────────────────────────
+
+st.markdown("---")
+
+st.subheader("Corpus Preview")
+
+preview_records = records[:20]
+
+st.json(preview_records)
+
+# ─────────────────────────────────────────────
+# RUN PIPELINE
 # ─────────────────────────────────────────────
 
 st.markdown("---")
@@ -202,29 +253,83 @@ if st.button(
 
             )
 
-        # ─────────────────────────────────
-        # STORE SESSION
-        # ─────────────────────────────────
+        # ─────────────────────────────────────
+        # STORE RESULT
+        # ─────────────────────────────────────
 
         st.session_state.analysis_result = (
             result
         )
 
-        # ─────────────────────────────────
-        # DISPLAY RESULT
-        # ─────────────────────────────────
+        # ─────────────────────────────────────
+        # DISPLAY
+        # ─────────────────────────────────────
 
         st.success(
             "Analysis Complete"
         )
 
-        st.markdown("---")
+        # ─────────────────────────────────────
+        # VERIFIED RESULTS
+        # ─────────────────────────────────────
 
-        st.subheader(
-            "Pipeline Result"
-        )
+        if isinstance(result, dict):
 
-        st.json(result)
+            st.markdown("---")
+
+            st.subheader(
+                "Pipeline Result"
+            )
+
+            st.json(result)
+
+            # ─────────────────────────────────
+            # WARNINGS
+            # ─────────────────────────────────
+
+            warnings = result.get(
+                "warnings",
+                []
+            )
+
+            if warnings:
+
+                st.markdown("---")
+
+                st.subheader(
+                    "Warnings"
+                )
+
+                for warning in warnings:
+
+                    st.warning(warning)
+
+            # ─────────────────────────────────
+            # LIMITATIONS
+            # ─────────────────────────────────
+
+            limitations = result.get(
+                "limitations",
+                []
+            )
+
+            if limitations:
+
+                st.markdown("---")
+
+                st.subheader(
+                    "Limitations"
+                )
+
+                for limitation in limitations:
+
+                    st.info(
+                        limitation
+                    )
+
+        else:
+
+            st.write(result)
 
     except Exception as e:
 
@@ -235,7 +340,7 @@ if st.button(
         st.exception(e)
 
 # ─────────────────────────────────────────────
-# FUTURE FEATURES
+# FUTURE AI LAYERS
 # ─────────────────────────────────────────────
 
 st.markdown("---")
@@ -245,13 +350,14 @@ st.subheader("Future AI Analysis")
 st.info("""
 Future versions may support:
 
-- PDF corpus ingestion
-- OCR manuscript parsing
 - semantic embeddings
 - vector search
-- adaptive manuscript analysis
+- AI-assisted manuscript analysis
 - multilingual corpora
-- AI-assisted reconstruction
+- OCR manuscript parsing
+- adaptive token reasoning
+- graph neural manuscript analysis
+- autonomous hypothesis generation
 """)
 
 # ─────────────────────────────────────────────
@@ -262,6 +368,6 @@ st.markdown("---")
 
 st.caption("""
 AMF Statistics Lab
-Experimental Computational
+Unified Computational Manuscript
 Validation Environment
 """)
