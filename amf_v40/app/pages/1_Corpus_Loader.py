@@ -1,6 +1,6 @@
 # ─────────────────────────────────────────────
 # AMF CORPUS LOADER
-# Backend-Compatible Automatic Conversion Engine
+# Fully Backend-Compatible Conversion Engine
 # ─────────────────────────────────────────────
 
 import streamlit as st
@@ -61,7 +61,8 @@ and AMF JSON corpora.
 
 AMF automatically converts
 uploaded documents into
-pipeline-compatible JSON format.
+fully backend-compatible
+pipeline-ready JSON corpora.
 """)
 
 # ─────────────────────────────────────────────
@@ -70,28 +71,56 @@ pipeline-compatible JSON format.
 
 def build_amf_json(text, source_name):
 
-    # TOKENIZE
+    # SPLIT INTO LINES
 
-    tokens = text.split()
+    lines = text.splitlines()
 
     records = []
 
-    for i, token in enumerate(tokens):
+    total_tokens = 0
 
-        # BACKEND-SAFE TOKEN RECORD
+    for i, line_text in enumerate(lines):
 
-        records.append({
+        clean_line = line_text.strip()
 
-            "token_id": i + 1,
+        if not clean_line:
 
-            "token": token,
+            continue
 
-            "position": i + 1
+        tokens = clean_line.split()
 
-        })
+        total_tokens += len(tokens)
+
+        # ─────────────────────────────────────
+        # EXACT BACKEND-COMPATIBLE TOKEN RECORD
+        # ─────────────────────────────────────
+
+        record = {
+
+            "folio":
+                f"auto_folio_{i+1}",
+
+            "section":
+                "P",
+
+            "line":
+                str(i + 1),
+
+            "transcriber":
+                "AMF_AUTO",
+
+            "raw_line":
+                clean_line,
+
+            "tokens":
+                tokens
+
+        }
+
+        records.append(record)
 
     # ─────────────────────────────────────────
-    # BACKEND-COMPATIBLE METADATA
+    # EXACT BACKEND-COMPATIBLE METADATA
     # ─────────────────────────────────────────
 
     corpus = {
@@ -103,7 +132,28 @@ def build_amf_json(text, source_name):
             ],
 
             "transcription_version":
-                "AMF_AUTO_1.0"
+                "AMF_AUTO_1.0",
+
+            "loaded_at":
+                "AUTO_GENERATED",
+
+            "amf_version":
+                "4.0",
+
+            "record_count":
+                len(records),
+
+            "folio_count":
+                len(records),
+
+            "token_count":
+                total_tokens,
+
+            "uncertainty_line_count":
+                0,
+
+            "notes":
+                "Automatically converted corpus"
 
         },
 
@@ -413,7 +463,7 @@ if uploaded_file is not None:
 
             st.metric(
 
-                "Tokens",
+                "Records",
 
                 len(
                     corpus["records"]
@@ -425,13 +475,11 @@ if uploaded_file is not None:
 
             st.metric(
 
-                "Source Files",
+                "Tokens",
 
-                len(
-                    corpus["metadata"][
-                        "source_files"
-                    ]
-                )
+                corpus["metadata"][
+                    "token_count"
+                ]
 
             )
 
@@ -441,7 +489,7 @@ if uploaded_file is not None:
 
                 "Schema",
 
-                "AMF Compatible"
+                "Backend Compatible"
 
             )
 
@@ -453,7 +501,7 @@ if uploaded_file is not None:
 
         st.json(
 
-            corpus["records"][:20]
+            corpus["records"][:10]
 
         )
 
@@ -537,6 +585,6 @@ st.markdown("---")
 
 st.caption("""
 AMF Corpus Loader
-Backend-Compatible Automatic
-Corpus Conversion Engine
+Fully Backend-Compatible
+Automatic Corpus Conversion Engine
 """)
