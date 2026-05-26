@@ -1,9 +1,10 @@
 # ─────────────────────────────────────────────
-# AMF MANUSCRIPT VIEWER
+# AMF ADVANCED MANUSCRIPT VIEWER
 # ─────────────────────────────────────────────
 
 import streamlit as st
 from PIL import Image
+import pandas as pd
 
 from components.header import (
     render_header
@@ -40,20 +41,17 @@ render_header()
 # TITLE
 # ─────────────────────────────────────────────
 
-st.title("Manuscript Viewer")
+st.title("Advanced Manuscript Viewer")
 
 st.markdown("""
-The Manuscript Viewer provides a
-visual analysis workspace for
-Voynich folios and manuscript imagery.
+The Advanced Manuscript Viewer provides
+an annotation-aware workspace for:
 
-This module supports:
-
-- Folio inspection
-- Codicological analysis
-- Visual annotation workflows
-- Token-image alignment
-- Diagram examination
+- folio inspection
+- codicological analysis
+- token-region mapping
+- manuscript intelligence workflows
+- glyph annotation systems
 """)
 
 # ─────────────────────────────────────────────
@@ -68,7 +66,7 @@ uploaded_image = st.file_uploader(
 )
 
 # ─────────────────────────────────────────────
-# DISPLAY IMAGE
+# IMAGE PROCESSING
 # ─────────────────────────────────────────────
 
 if uploaded_image:
@@ -79,17 +77,17 @@ if uploaded_image:
         "Folio image loaded successfully."
     )
 
+    width, height = image.size
+
     # ─────────────────────────────────────────
-    # IMAGE METRICS
+    # METADATA
     # ─────────────────────────────────────────
 
     st.markdown("---")
 
-    st.subheader("Image Information")
+    st.subheader("Folio Metadata")
 
-    width, height = image.size
-
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
 
@@ -112,8 +110,15 @@ if uploaded_image:
             image.mode
         )
 
+    with col4:
+
+        st.metric(
+            "Aspect Ratio",
+            round(width / height, 2)
+        )
+
     # ─────────────────────────────────────────
-    # ZOOM CONTROL
+    # ZOOM
     # ─────────────────────────────────────────
 
     st.markdown("---")
@@ -121,7 +126,7 @@ if uploaded_image:
     zoom = st.slider(
         "Zoom Level",
         min_value=25,
-        max_value=200,
+        max_value=300,
         value=100,
         step=25
     )
@@ -136,7 +141,7 @@ if uploaded_image:
 
     st.markdown("---")
 
-    st.subheader("Folio View")
+    st.subheader("Folio Workspace")
 
     st.image(
         image,
@@ -144,67 +149,149 @@ if uploaded_image:
     )
 
     # ─────────────────────────────────────────
-    # TRANSCRIPTION PANEL
+    # TOKEN MAPPING
     # ─────────────────────────────────────────
 
     st.markdown("---")
 
-    st.subheader(
-        "Associated Transcription"
+    st.subheader("Token Mapping")
+
+    token = st.text_input(
+        "Associated EVA Token",
+        placeholder="qokeedy"
     )
 
-    transcription = st.text_area(
-        "EVA Transcription",
-        height=200,
-        placeholder="""
-qokeedy qokedy dal
+    col1, col2 = st.columns(2)
 
-otary shedy qokedy
+    with col1:
 
-qotedy qokain shedy
-"""
+        x_coord = st.number_input(
+            "X Coordinate",
+            min_value=0,
+            max_value=width,
+            value=100
+        )
+
+    with col2:
+
+        y_coord = st.number_input(
+            "Y Coordinate",
+            min_value=0,
+            max_value=height,
+            value=100
+        )
+
+    region_type = st.selectbox(
+
+        "Region Type",
+
+        [
+
+            "Botanical",
+            "Textual",
+            "Pharmaceutical",
+            "Astronomical",
+            "Diagrammatic",
+            "Unknown"
+
+        ]
+
     )
 
     # ─────────────────────────────────────────
-    # NOTES PANEL
+    # ANNOTATION
     # ─────────────────────────────────────────
 
     st.markdown("---")
 
-    st.subheader("Research Notes")
+    st.subheader("Annotation Notes")
 
     notes = st.text_area(
-        "Annotation Notes",
+        "Research Annotation",
         height=200,
         placeholder="""
 Enter codicological observations,
-diagrammatic analysis,
-glyph structure notes,
-or procedural hypotheses.
+glyph relationships,
+procedural hypotheses,
+or manuscript analysis notes.
 """
     )
 
     # ─────────────────────────────────────────
-    # EXPORT PLACEHOLDER
+    # ANNOTATION TABLE
     # ─────────────────────────────────────────
 
     st.markdown("---")
 
-    st.subheader("Session Export")
+    st.subheader("Annotation Record")
+
+    annotation_df = pd.DataFrame([{
+
+        "Token":
+            token,
+
+        "X":
+            x_coord,
+
+        "Y":
+            y_coord,
+
+        "Region":
+            region_type,
+
+        "Notes":
+            notes
+
+    }])
+
+    st.dataframe(
+        annotation_df,
+        use_container_width=True
+    )
+
+    # ─────────────────────────────────────────
+    # EXPORT
+    # ─────────────────────────────────────────
+
+    st.markdown("---")
+
+    st.subheader("Export Annotation")
+
+    csv = annotation_df.to_csv(
+        index=False
+    )
+
+    st.download_button(
+        label="Download Annotation CSV",
+        data=csv,
+        file_name="amf_annotation.csv",
+        mime="text/csv"
+    )
+
+    # ─────────────────────────────────────────
+    # FUTURE OVERLAYS
+    # ─────────────────────────────────────────
+
+    st.markdown("---")
+
+    st.subheader("Future Intelligence Layers")
 
     st.info("""
 Future versions may support:
 
-- annotation export
-- token overlays
 - glyph bounding boxes
-- region tagging
-- AI-assisted folio analysis
+- OCR integration
+- AI-assisted token detection
+- manuscript segmentation
+- folio clustering
+- visual token overlays
+- region heatmaps
 - codicological comparison
+- graph-based annotation systems
 """)
 
 # ─────────────────────────────────────────────
-# VIEWER NOTES
+# THEORY NOTES
 # ─────────────────────────────────────────────
 
 st.markdown("---")
@@ -212,13 +299,14 @@ st.markdown("---")
 st.subheader("Viewer Notes")
 
 st.info("""
-The Manuscript Viewer is designed
-as a research workspace rather than
-a translation engine.
+The Advanced Manuscript Viewer
+is designed as a manuscript research
+workspace rather than a translation
+engine.
 
 Visual interpretation remains
-hypothetical and requires independent
-validation.
+experimental and requires
+independent validation.
 """)
 
 # ─────────────────────────────────────────────
@@ -228,6 +316,7 @@ validation.
 st.markdown("---")
 
 st.caption("""
-AMF Manuscript Viewer • Experimental
-Codicological Analysis Environment
+AMF Advanced Manuscript Viewer
+Experimental Codicological
+Intelligence Environment
 """)
