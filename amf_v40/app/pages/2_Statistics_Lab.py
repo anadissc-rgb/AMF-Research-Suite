@@ -11,12 +11,14 @@ import sys
 from pathlib import Path
 
 # ─────────────────────────────────────────────
-# PATH FIX
+# ROOT PATH FIX
 # ─────────────────────────────────────────────
 
-ROOT_DIR = Path(__file__).resolve().parent.parent
+CURRENT_FILE = Path(__file__).resolve()
 
-sys.path.append(str(ROOT_DIR))
+PROJECT_ROOT = CURRENT_FILE.parents[2]
+
+sys.path.append(str(PROJECT_ROOT))
 
 # ─────────────────────────────────────────────
 # COMPONENT IMPORTS
@@ -47,7 +49,9 @@ try:
 except Exception as e:
 
     st.error("AMF pipeline import failed.")
+
     st.exception(e)
+
     st.stop()
 
 # ─────────────────────────────────────────────
@@ -99,7 +103,7 @@ if not st.session_state.corpus_path:
     st.stop()
 
 # ─────────────────────────────────────────────
-# RUN ANALYSIS BUTTON
+# RUN BUTTON
 # ─────────────────────────────────────────────
 
 run_analysis = st.button(
@@ -257,7 +261,7 @@ if run_analysis:
             )
 
             # ─────────────────────────────────
-            # VERIFIED RESULTS JSON
+            # VERIFIED RESULTS
             # ─────────────────────────────────
 
             st.markdown("---")
@@ -320,7 +324,6 @@ if run_analysis:
 
             st.subheader("Export Results")
 
-            # CSV
             csv = summary_df.to_csv(
                 index=False
             )
@@ -332,7 +335,6 @@ if run_analysis:
                 mime="text/csv"
             )
 
-            # JSON
             json_output = json.dumps(
                 verified,
                 indent=2,
