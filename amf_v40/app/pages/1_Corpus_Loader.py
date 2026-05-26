@@ -3,9 +3,11 @@
 # ─────────────────────────────────────────────
 
 import streamlit as st
+import json
 import tempfile
-
 from pathlib import Path
+
+from pypdf import PdfReader
 
 from components.header import (
     render_header
@@ -17,10 +19,6 @@ from components.sidebar import (
 
 from utils.state import (
     init_state
-)
-
-from utils.config import (
-    SUPPORTED_FORMATS
 )
 
 # ─────────────────────────────────────────────
@@ -43,122 +41,337 @@ render_sidebar()
 render_header()
 
 # ─────────────────────────────────────────────
-# PAGE TITLE
+# TITLE
 # ─────────────────────────────────────────────
 
 st.title("Corpus Loader")
 
 st.markdown("""
-Upload EVA transcription corpora
-for analysis within the
-AMF Research Studio environment.
+Upload manuscript corpora,
+research files, EVA transcriptions,
+PDF studies, and structured datasets
+for AMF analysis.
 """)
 
 # ─────────────────────────────────────────────
 # FILE UPLOADER
 # ─────────────────────────────────────────────
 
+st.markdown("---")
+
 uploaded_file = st.file_uploader(
-    "Upload Corpus File",
-    type=SUPPORTED_FORMATS
+
+    "Upload Research Corpus",
+
+    type=[
+
+        "txt",
+        "json",
+        "pdf",
+        "csv"
+
+    ],
+
+    help="""
+Supported formats:
+
+• TXT
+• JSON
+• PDF
+• CSV
+"""
+
 )
 
 # ─────────────────────────────────────────────
 # FILE PROCESSING
 # ─────────────────────────────────────────────
 
-if uploaded_file:
+if uploaded_file is not None:
 
-    suffix = uploaded_file.name.split(".")[-1]
+    file_name = uploaded_file.name
 
-    with tempfile.NamedTemporaryFile(
-        delete=False,
-        suffix=f".{suffix}"
-    ) as tmp:
-
-        tmp.write(uploaded_file.read())
-
-        tmp_path = tmp.name
-
-    # STORE IN SESSION STATE
-    st.session_state.corpus_path = tmp_path
-
-    st.session_state.uploaded_filename = (
-        uploaded_file.name
+    file_extension = (
+        file_name
+        .split(".")[-1]
+        .lower()
     )
 
     st.success(
-        f"""
-Corpus loaded successfully:
-
-{uploaded_file.name}
-"""
+        f"Loaded: {file_name}"
     )
 
     # ─────────────────────────────────────────
-    # FILE INFO
+    # SESSION STORAGE
     # ─────────────────────────────────────────
 
-    st.markdown("---")
-
-    st.subheader("Corpus Information")
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-
-        st.metric(
-            "Filename",
-            uploaded_file.name
-        )
-
-    with col2:
-
-        st.metric(
-            "File Type",
-            suffix.upper()
-        )
-
-    with col3:
-
-        size_kb = round(
-            uploaded_file.size / 1024,
-            2
-        )
-
-        st.metric(
-            "Size (KB)",
-            size_kb
-        )
+    st.session_state.uploaded_filename = (
+        file_name
+    )
 
     # ─────────────────────────────────────────
-    # PREVIEW
+    # TXT FILES
     # ─────────────────────────────────────────
 
-    st.markdown("---")
+    if file_extension == "txt":
 
-    st.subheader("Corpus Preview")
+        try:
 
-    try:
+            content = uploaded_file.read().decode(
+                "utf-8"
+            )
 
-        content = uploaded_file.getvalue()
+            st.markdown("---")
 
-        decoded = content.decode(
-            "utf-8",
-            errors="ignore"
-        )
+            st.subheader(
+                "TXT Preview"
+            )
 
-        st.text_area(
-            "Preview",
-            decoded[:3000],
-            height=300
-        )
+            st.text_area(
 
-    except Exception:
+                "Corpus Content",
 
-        st.warning(
-            "Preview unavailable."
-        )
+                content,
+
+                height=400
+
+            )
+
+            # SAVE TEMP FILE
+
+            with tempfile.NamedTemporaryFile(
+
+                delete=False,
+                suffix=".txt"
+
+            ) as tmp_file:
+
+                tmp_file.write(
+                    content.encode("utf-8")
+                )
+
+                st.session_state.corpus_path = (
+                    tmp_file.name
+                )
+
+            st.success(
+                "TXT corpus processed successfully."
+            )
+
+        except Exception as e:
+
+            st.error(
+                "TXT processing failed."
+            )
+
+            st.exception(e)
+
+    # ─────────────────────────────────────────
+    # JSON FILES
+    # ─────────────────────────────────────────
+
+    elif file_extension == "json":
+
+        try:
+
+            data = json.load(
+                uploaded_file
+            )
+
+            st.markdown("---")
+
+            st.subheader(
+                "JSON Preview"
+            )
+
+            st.json(data)
+
+            # SAVE TEMP FILE
+
+            with tempfile.NamedTemporaryFile(
+
+                delete=False,
+                suffix=".json",
+                mode="w",
+                encoding="utf-8"
+
+            ) as tmp_file:
+
+                json.dump(
+                    data,
+                    tmp_file,
+                    indent=2
+                )
+
+                st.session_state.corpus_path = (
+                    tmp_file.name
+                )
+
+            st.success(
+                "JSON corpus processed successfully."
+            )
+
+        except Exception as e:
+
+            st.error(
+                "JSON processing failed."
+            )
+
+            st.exception(e)
+
+    # ─────────────────────────────────────────
+    # PDF FILES
+    # ─────────────────────────────────────────
+
+    elif file_extension == "pdf":
+
+        try:
+
+            reader = PdfReader(
+                uploaded_file
+            )
+
+            extracted_text = ""
+
+            total_pages = len(
+                reader.pages
+            )
+
+            for page in reader.pages:
+
+                text = page.extract_text()
+
+                if text:
+
+                    extracted_text += (
+                        text + "\n"
+                    )
+
+            st.markdown("---")
+
+            st.subheader(
+                "PDF Metadata"
+            )
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+
+                st.metric(
+                    "Pages",
+                    total_pages
+                )
+
+            with col2:
+
+                st.metric(
+                    "Characters",
+                    len(extracted_text)
+                )
+
+            st.markdown("---")
+
+            st.subheader(
+                "Extracted PDF Text"
+            )
+
+            st.text_area(
+
+                "PDF Content",
+
+                extracted_text,
+
+                height=500
+
+            )
+
+            # SAVE TEMP FILE
+
+            with tempfile.NamedTemporaryFile(
+
+                delete=False,
+                suffix=".txt"
+
+            ) as tmp_file:
+
+                tmp_file.write(
+
+                    extracted_text.encode(
+                        "utf-8"
+                    )
+
+                )
+
+                st.session_state.corpus_path = (
+                    tmp_file.name
+                )
+
+            st.success(
+                "PDF processed successfully."
+            )
+
+        except Exception as e:
+
+            st.error(
+                "PDF extraction failed."
+            )
+
+            st.exception(e)
+
+    # ─────────────────────────────────────────
+    # CSV FILES
+    # ─────────────────────────────────────────
+
+    elif file_extension == "csv":
+
+        try:
+
+            import pandas as pd
+
+            df = pd.read_csv(
+                uploaded_file
+            )
+
+            st.markdown("---")
+
+            st.subheader(
+                "CSV Preview"
+            )
+
+            st.dataframe(
+                df,
+                use_container_width=True
+            )
+
+            # SAVE TEMP FILE
+
+            with tempfile.NamedTemporaryFile(
+
+                delete=False,
+                suffix=".csv"
+
+            ) as tmp_file:
+
+                df.to_csv(
+                    tmp_file.name,
+                    index=False
+                )
+
+                st.session_state.corpus_path = (
+                    tmp_file.name
+                )
+
+            st.success(
+                "CSV corpus processed successfully."
+            )
+
+        except Exception as e:
+
+            st.error(
+                "CSV processing failed."
+            )
+
+            st.exception(e)
 
 # ─────────────────────────────────────────────
 # SESSION STATUS
@@ -166,23 +379,58 @@ Corpus loaded successfully:
 
 st.markdown("---")
 
-st.subheader("Current Session")
+st.subheader("Session Status")
 
-if st.session_state.uploaded_filename:
+col1, col2 = st.columns(2)
 
-    st.info(
-        f"""
-Active Corpus:
+with col1:
 
-{st.session_state.uploaded_filename}
-"""
+    st.metric(
+
+        "Corpus Loaded",
+
+        (
+            "YES"
+            if st.session_state.corpus_path
+            else "NO"
+        )
+
     )
 
-else:
+with col2:
 
-    st.warning(
-        "No active corpus loaded."
+    st.metric(
+
+        "Uploaded File",
+
+        (
+            st.session_state.uploaded_filename
+            if st.session_state.uploaded_filename
+            else "None"
+        )
+
     )
+
+# ─────────────────────────────────────────────
+# FUTURE INGESTION
+# ─────────────────────────────────────────────
+
+st.markdown("---")
+
+st.subheader("Future Corpus Intelligence")
+
+st.info("""
+Future versions may support:
+
+- OCR manuscript extraction
+- semantic embeddings
+- vector database indexing
+- multilingual parsing
+- folio segmentation
+- manuscript entity extraction
+- AI-assisted corpus reconstruction
+- automated codicological tagging
+""")
 
 # ─────────────────────────────────────────────
 # FOOTER
@@ -191,6 +439,7 @@ else:
 st.markdown("---")
 
 st.caption("""
-AMF Corpus Loader • Experimental
-Corpus Ingestion Environment
+AMF Corpus Loader
+Experimental Research Corpus
+Ingestion Environment
 """)
