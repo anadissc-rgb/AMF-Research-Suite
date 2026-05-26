@@ -4,7 +4,6 @@
 
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
 
 try:
 
@@ -12,17 +11,27 @@ try:
 
 except Exception as e:
 
-    st.error("""
-networkx dependency failed to load.
-
-Usually caused by incomplete
-Streamlit dependency installation.
-""")
+    st.error(
+        "networkx failed to load."
+    )
 
     st.exception(e)
 
     st.stop()
 
+try:
+
+    import plotly.graph_objects as go
+
+except Exception as e:
+
+    st.error(
+        "plotly failed to load."
+    )
+
+    st.exception(e)
+
+    st.stop()
 from components.header import (
     render_header
 )
