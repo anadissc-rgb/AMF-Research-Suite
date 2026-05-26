@@ -3,9 +3,25 @@
 # ─────────────────────────────────────────────
 
 import streamlit as st
-import networkx as nx
-import plotly.graph_objects as go
 import pandas as pd
+import plotly.graph_objects as go
+
+try:
+
+    import networkx as nx
+
+except Exception as e:
+
+    st.error("""
+networkx dependency failed to load.
+
+Usually caused by incomplete
+Streamlit dependency installation.
+""")
+
+    st.exception(e)
+
+    st.stop()
 
 from components.header import (
     render_header
