@@ -20,6 +20,8 @@ powerlaw>=1.5
 # NETWORK & GRAPH ANALYSIS
 networkx>=3.2
 
+# graph intelligence support
+
 # VISUALIZATION
 matplotlib>=3.8
 plotly>=5.18
