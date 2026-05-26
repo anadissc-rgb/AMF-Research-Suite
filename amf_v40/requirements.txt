@@ -1,69 +1,44 @@
 # ─────────────────────────────────────────────
-# AMF v4.0 — Production Requirements
-# Amanuensis Model Framework
-# Optimized for:
-# - Streamlit GUI
-# - Validation Engine
-# - Statistical Analysis
-# - Research Runtime
+# AMF v4.0 — Stable Production Requirements
 # ─────────────────────────────────────────────
 
-# CORE NUMERICAL STACK
-numpy>=1.26
-scipy>=1.12
-pandas>=2.1
+# CORE STACK
+numpy==1.26.4
+pandas==2.2.1
+scipy==1.12.0
 
-# STATISTICAL ANALYSIS
-statsmodels>=0.14
-powerlaw>=1.5
-
-# NETWORK & GRAPH ANALYSIS
-networkx==3.2.1
-
-# graph intelligence support
+# STATISTICS
+statsmodels==0.14.1
+powerlaw==1.5
 
 # VISUALIZATION
-matplotlib>=3.8
-plotly>=5.18
-kaleido>=0.2
-Pillow>=10.0
+matplotlib==3.8.3
+plotly==5.19.0
+kaleido==0.2.1
+Pillow==10.2.0
 
-# STREAMLIT GUI
-streamlit>=1.32
+# NETWORK ANALYSIS
+networkx==3.2.1
 
-# NLP / TEXT PROCESSING
-nltk>=3.8
+# STREAMLIT
+streamlit==1.32.2
 
-# CONFIGURATION & DATA VALIDATION
-pyyaml>=6.0
-pydantic>=2.5
+# NLP
+nltk==3.8.1
 
-# NOTEBOOK SUPPORT
-jupyter>=1.0
-ipykernel>=6.28
+# CONFIG
+pyyaml==6.0.1
+pydantic==2.6.1
+
+# NOTEBOOKS
+jupyter==1.0.0
+ipykernel==6.29.2
 
 # TESTING
-pytest>=7.4
-pytest-cov>=4.1
+pytest==8.0.1
+pytest-cov==4.1.0
 
-# CODE QUALITY
-ruff>=0.1
-mypy>=1.7
-black>=23.0
-
-# OPTIONAL FUTURE AI SUPPORT
-# Uncomment later if needed
-# scikit-learn>=1.4
-# transformers>=4.38
-# sentence-transformers>=2.3
-
-# OPTIONAL DATABASE SUPPORT
-# Uncomment later if needed
-# sqlalchemy>=2.0
-# psycopg2-binary>=2.9
-# neo4j>=5.15
-
-# OPTIONAL API SUPPORT
-# Uncomment later if needed
-# fastapi>=0.110
-# uvicorn>=0.27
+# QUALITY
+ruff==0.2.2
+mypy==1.8.0
+black==24.2.0
