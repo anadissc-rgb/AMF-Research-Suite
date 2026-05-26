@@ -8,6 +8,9 @@ import json
 import tempfile
 import sys
 
+import plotly.express as px
+import plotly.graph_objects as go
+
 from pathlib import Path
 
 # ─────────────────────────────────────────────
@@ -135,8 +138,13 @@ if run_analysis:
                     run_id="statistics_lab"
                 )
 
+            # ─────────────────────────────────
             # STORE RESULTS
-            st.session_state.analysis_result = result
+            # ─────────────────────────────────
+
+            st.session_state.analysis_result = (
+                result
+            )
 
             st.session_state.verified_results = (
                 result.verified_results
@@ -173,7 +181,7 @@ if run_analysis:
             adjacency = verified["adjacency"]
 
             # ─────────────────────────────────
-            # METRICS
+            # CORE METRICS
             # ─────────────────────────────────
 
             st.markdown("---")
@@ -261,6 +269,188 @@ if run_analysis:
             )
 
             # ─────────────────────────────────
+            # VISUALIZATIONS
+            # ─────────────────────────────────
+
+            st.markdown("---")
+
+            st.subheader(
+                "Statistical Visualizations"
+            )
+
+            # ─────────────────────────────────
+            # ENTROPY CHART
+            # ─────────────────────────────────
+
+            entropy_df = pd.DataFrame({
+
+                "Metric": [
+                    "Unigram",
+                    "Bigram"
+                ],
+
+                "Bits": [
+
+                    entropy[
+                        "unigram_bits"
+                    ],
+
+                    entropy[
+                        "bigram_conditional_bits"
+                    ]
+
+                ]
+
+            })
+
+            entropy_fig = px.bar(
+
+                entropy_df,
+
+                x="Metric",
+
+                y="Bits",
+
+                title="Entropy Analysis"
+
+            )
+
+            st.plotly_chart(
+                entropy_fig,
+                use_container_width=True
+            )
+
+            # ─────────────────────────────────
+            # ZIPF CHART
+            # ─────────────────────────────────
+
+            zipf_df = pd.DataFrame({
+
+                "Metric": [
+                    "Alpha",
+                    "R²"
+                ],
+
+                "Value": [
+
+                    zipf["alpha"],
+
+                    zipf["r_squared"]
+
+                ]
+
+            })
+
+            zipf_fig = px.bar(
+
+                zipf_df,
+
+                x="Metric",
+
+                y="Value",
+
+                title="Zipf Distribution"
+
+            )
+
+            st.plotly_chart(
+                zipf_fig,
+                use_container_width=True
+            )
+
+            # ─────────────────────────────────
+            # MARKOV VISUALIZATION
+            # ─────────────────────────────────
+
+            perplexity = markov[
+                "perplexity_by_order"
+            ]
+
+            orders = []
+
+            values = []
+
+            for k, v in perplexity.items():
+
+                if (
+                    v["train"] != float("inf")
+                    and v["train"] is not None
+                ):
+
+                    orders.append(int(k))
+
+                    values.append(v["train"])
+
+            markov_df = pd.DataFrame({
+
+                "Order": orders,
+
+                "Perplexity": values
+
+            })
+
+            markov_fig = px.line(
+
+                markov_df,
+
+                x="Order",
+
+                y="Perplexity",
+
+                markers=True,
+
+                title="Markov Perplexity"
+
+            )
+
+            st.plotly_chart(
+                markov_fig,
+                use_container_width=True
+            )
+
+            # ─────────────────────────────────
+            # TOKEN DISTRIBUTION
+            # ─────────────────────────────────
+
+            token_df = pd.DataFrame({
+
+                "Category": [
+                    "Tokens",
+                    "Types"
+                ],
+
+                "Count": [
+
+                    entropy[
+                        "token_count"
+                    ],
+
+                    entropy[
+                        "type_count"
+                    ]
+
+                ]
+
+            })
+
+            token_fig = px.pie(
+
+                token_df,
+
+                names="Category",
+
+                values="Count",
+
+                title="Token Distribution"
+
+            )
+
+            st.plotly_chart(
+                token_fig,
+                use_container_width=True
+            )
+
+            # ─────────────────────────────────
             # VERIFIED RESULTS
             # ─────────────────────────────────
 
@@ -324,6 +514,8 @@ if run_analysis:
 
             st.subheader("Export Results")
 
+            # CSV EXPORT
+
             csv = summary_df.to_csv(
                 index=False
             )
@@ -334,6 +526,8 @@ if run_analysis:
                 file_name="amf_statistics.csv",
                 mime="text/csv"
             )
+
+            # JSON EXPORT
 
             json_output = json.dumps(
                 verified,
