@@ -1,11 +1,10 @@
 # ─────────────────────────────────────────────
 # AMF STATISTICS LAB
-# Unified Multi-Format Pipeline Execution
+# Safe Large-Corpus Execution Layer
 # ─────────────────────────────────────────────
 
 import streamlit as st
 import json
-from pathlib import Path
 
 from components.header import (
     render_header
@@ -18,10 +17,6 @@ from components.sidebar import (
 from utils.state import (
     init_state
 )
-
-# ─────────────────────────────────────────────
-# AMF PIPELINE IMPORT
-# ─────────────────────────────────────────────
 
 try:
 
@@ -40,8 +35,6 @@ except Exception as e:
     st.stop()
 
 # ─────────────────────────────────────────────
-# PAGE CONFIG
-# ─────────────────────────────────────────────
 
 st.set_page_config(
 
@@ -51,10 +44,6 @@ st.set_page_config(
 
 )
 
-# ─────────────────────────────────────────────
-# INITIALIZE
-# ─────────────────────────────────────────────
-
 init_state()
 
 render_sidebar()
@@ -62,24 +51,14 @@ render_sidebar()
 render_header()
 
 # ─────────────────────────────────────────────
-# TITLE
-# ─────────────────────────────────────────────
 
 st.title("Statistics Lab")
 
 st.markdown("""
-The Statistics Lab performs:
-
-- entropy analysis
-- Zipf evaluation
-- Markov modeling
-- DPAS validation
-- falsification testing
-- manuscript statistical analysis
+Unified statistical execution
+environment for AMF corpus analysis.
 """)
 
-# ─────────────────────────────────────────────
-# SESSION CHECK
 # ─────────────────────────────────────────────
 
 if not st.session_state.corpus_path:
@@ -99,12 +78,10 @@ uploaded_filename = (
 )
 
 # ─────────────────────────────────────────────
-# CORPUS STATUS
-# ─────────────────────────────────────────────
 
 st.markdown("---")
 
-st.subheader("Corpus Validation")
+st.subheader("Corpus Status")
 
 col1, col2 = st.columns(2)
 
@@ -141,8 +118,7 @@ try:
         payload = json.load(f)
 
     st.success("""
-Corpus successfully converted into
-AMF-compatible JSON structure.
+Corpus successfully validated.
 
 Pipeline ready.
 """)
@@ -158,12 +134,8 @@ except Exception as e:
     st.stop()
 
 # ─────────────────────────────────────────────
-# CORPUS METADATA
-# ─────────────────────────────────────────────
 
 st.markdown("---")
-
-st.subheader("Corpus Metadata")
 
 metadata = payload.get(
     "metadata",
@@ -180,55 +152,30 @@ col1, col2, col3 = st.columns(3)
 with col1:
 
     st.metric(
-
-        "Tokens",
-
-        metadata.get(
-            "token_count",
-            len(records)
-        )
-
+        "Records",
+        len(records)
     )
 
 with col2:
 
     st.metric(
-
-        "Records",
-
-        len(records)
-
+        "Tokens",
+        metadata.get(
+            "token_count",
+            0
+        )
     )
 
 with col3:
 
     st.metric(
-
-        "Source Files",
-
-        len(
-            metadata.get(
-                "source_files",
-                []
-            )
+        "Folios",
+        metadata.get(
+            "folio_count",
+            0
         )
-
     )
 
-# ─────────────────────────────────────────────
-# CORPUS PREVIEW
-# ─────────────────────────────────────────────
-
-st.markdown("---")
-
-st.subheader("Corpus Preview")
-
-preview_records = records[:20]
-
-st.json(preview_records)
-
-# ─────────────────────────────────────────────
-# RUN PIPELINE
 # ─────────────────────────────────────────────
 
 st.markdown("---")
@@ -253,79 +200,41 @@ if st.button(
 
             )
 
-        # ─────────────────────────────────────
-        # STORE RESULT
-        # ─────────────────────────────────────
-
-        st.session_state.analysis_result = (
-            result
-        )
-
-        # ─────────────────────────────────────
-        # DISPLAY
-        # ─────────────────────────────────────
-
         st.success(
-            "Analysis Complete"
+            "Pipeline execution completed."
         )
 
-        # ─────────────────────────────────────
-        # VERIFIED RESULTS
-        # ─────────────────────────────────────
+        # SAFE RESULT DISPLAY
+
+        st.markdown("---")
+
+        st.subheader(
+            "Pipeline Summary"
+        )
 
         if isinstance(result, dict):
+
+            safe_preview = {}
+
+            for key, value in result.items():
+
+                safe_preview[key] = (
+                    str(value)[:500]
+                )
+
+            st.json(
+                safe_preview
+            )
 
             st.markdown("---")
 
             st.subheader(
-                "Pipeline Result"
+                "Available Result Keys"
             )
 
-            st.json(result)
-
-            # ─────────────────────────────────
-            # WARNINGS
-            # ─────────────────────────────────
-
-            warnings = result.get(
-                "warnings",
-                []
+            st.write(
+                list(result.keys())
             )
-
-            if warnings:
-
-                st.markdown("---")
-
-                st.subheader(
-                    "Warnings"
-                )
-
-                for warning in warnings:
-
-                    st.warning(warning)
-
-            # ─────────────────────────────────
-            # LIMITATIONS
-            # ─────────────────────────────────
-
-            limitations = result.get(
-                "limitations",
-                []
-            )
-
-            if limitations:
-
-                st.markdown("---")
-
-                st.subheader(
-                    "Limitations"
-                )
-
-                for limitation in limitations:
-
-                    st.info(
-                        limitation
-                    )
 
         else:
 
@@ -340,34 +249,11 @@ if st.button(
         st.exception(e)
 
 # ─────────────────────────────────────────────
-# FUTURE AI LAYERS
-# ─────────────────────────────────────────────
-
-st.markdown("---")
-
-st.subheader("Future AI Analysis")
-
-st.info("""
-Future versions may support:
-
-- semantic embeddings
-- vector search
-- AI-assisted manuscript analysis
-- multilingual corpora
-- OCR manuscript parsing
-- adaptive token reasoning
-- graph neural manuscript analysis
-- autonomous hypothesis generation
-""")
-
-# ─────────────────────────────────────────────
-# FOOTER
-# ─────────────────────────────────────────────
 
 st.markdown("---")
 
 st.caption("""
 AMF Statistics Lab
-Unified Computational Manuscript
-Validation Environment
+Large-Corpus-Safe
+Execution Environment
 """)
