@@ -1,6 +1,6 @@
 # ─────────────────────────────────────────────
 # AMF CORPUS LOADER
-# Fully Backend-Compatible Conversion Engine
+# Large-Corpus-Safe Backend-Compatible Engine
 # ─────────────────────────────────────────────
 
 import streamlit as st
@@ -71,8 +71,6 @@ pipeline-ready JSON corpora.
 
 def build_amf_json(text, source_name):
 
-    # SPLIT INTO LINES
-
     lines = text.splitlines()
 
     records = []
@@ -80,6 +78,12 @@ def build_amf_json(text, source_name):
     total_tokens = 0
 
     for i, line_text in enumerate(lines):
+
+        # SAFETY LIMIT
+
+        if len(records) > 5000:
+
+            break
 
         clean_line = line_text.strip()
 
@@ -89,11 +93,13 @@ def build_amf_json(text, source_name):
 
         tokens = clean_line.split()
 
+        # LIMIT MASSIVE LINES
+
+        tokens = tokens[:200]
+
         total_tokens += len(tokens)
 
-        # ─────────────────────────────────────
-        # EXACT BACKEND-COMPATIBLE TOKEN RECORD
-        # ─────────────────────────────────────
+        # EXACT BACKEND-COMPATIBLE RECORD
 
         record = {
 
@@ -110,7 +116,7 @@ def build_amf_json(text, source_name):
                 "AMF_AUTO",
 
             "raw_line":
-                clean_line,
+                clean_line[:2000],
 
             "tokens":
                 tokens
@@ -218,7 +224,7 @@ if uploaded_file is not None:
     extracted_text = ""
 
     # ─────────────────────────────────────────
-    # TXT FILES
+    # TXT
     # ─────────────────────────────────────────
 
     if extension == "txt":
@@ -244,7 +250,7 @@ if uploaded_file is not None:
             st.stop()
 
     # ─────────────────────────────────────────
-    # PDF FILES
+    # PDF
     # ─────────────────────────────────────────
 
     elif extension == "pdf":
@@ -259,7 +265,18 @@ if uploaded_file is not None:
                 reader.pages
             )
 
-            for page in reader.pages:
+            # PAGE SAFETY LIMIT
+
+            max_pages = min(
+                total_pages,
+                100
+            )
+
+            for page_index in range(max_pages):
+
+                page = reader.pages[
+                    page_index
+                ]
 
                 text = page.extract_text()
 
@@ -275,16 +292,23 @@ if uploaded_file is not None:
                 "PDF Extraction Summary"
             )
 
-            col1, col2 = st.columns(2)
+            col1, col2, col3 = st.columns(3)
 
             with col1:
 
                 st.metric(
-                    "Pages",
+                    "Total Pages",
                     total_pages
                 )
 
             with col2:
+
+                st.metric(
+                    "Processed Pages",
+                    max_pages
+                )
+
+            with col3:
 
                 st.metric(
                     "Characters",
@@ -302,7 +326,7 @@ if uploaded_file is not None:
             st.stop()
 
     # ─────────────────────────────────────────
-    # CSV FILES
+    # CSV
     # ─────────────────────────────────────────
 
     elif extension == "csv":
@@ -344,7 +368,7 @@ if uploaded_file is not None:
             st.stop()
 
     # ─────────────────────────────────────────
-    # JSON FILES
+    # JSON
     # ─────────────────────────────────────────
 
     elif extension == "json":
@@ -388,10 +412,12 @@ if uploaded_file is not None:
             st.markdown("---")
 
             st.subheader(
-                "JSON Corpus Preview"
+                "JSON Preview"
             )
 
-            st.json(data)
+            st.write(
+                list(data.keys())
+            )
 
             st.stop()
 
@@ -406,7 +432,7 @@ if uploaded_file is not None:
             st.stop()
 
     # ─────────────────────────────────────────
-    # BUILD AMF JSON CORPUS
+    # BUILD CORPUS
     # ─────────────────────────────────────────
 
     try:
@@ -448,7 +474,7 @@ if uploaded_file is not None:
             )
 
         # ─────────────────────────────────────
-        # DISPLAY SUMMARY
+        # SAFE PREVIEW
         # ─────────────────────────────────────
 
         st.markdown("---")
@@ -499,10 +525,15 @@ if uploaded_file is not None:
             "Corpus Preview"
         )
 
-        st.json(
+        preview_df = pd.DataFrame(
 
             corpus["records"][:10]
 
+        )
+
+        st.dataframe(
+            preview_df,
+            use_container_width=True
         )
 
         st.success("""
@@ -585,6 +616,6 @@ st.markdown("---")
 
 st.caption("""
 AMF Corpus Loader
-Fully Backend-Compatible
-Automatic Corpus Conversion Engine
+Large-Corpus-Safe Backend-Compatible
+Conversion Engine
 """)
