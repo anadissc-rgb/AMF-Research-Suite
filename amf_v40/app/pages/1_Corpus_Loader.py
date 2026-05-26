@@ -1,11 +1,14 @@
 # ─────────────────────────────────────────────
 # AMF CORPUS LOADER
+# Automatic Corpus Conversion Engine
 # ─────────────────────────────────────────────
 
 import streamlit as st
 import json
 import tempfile
+import pandas as pd
 from pathlib import Path
+from datetime import datetime
 
 from pypdf import PdfReader
 
@@ -26,8 +29,11 @@ from utils.state import (
 # ─────────────────────────────────────────────
 
 st.set_page_config(
+
     page_title="Corpus Loader",
+
     layout="wide"
+
 )
 
 # ─────────────────────────────────────────────
@@ -47,11 +53,58 @@ render_header()
 st.title("Corpus Loader")
 
 st.markdown("""
-Upload manuscript corpora,
-research files, EVA transcriptions,
-PDF studies, and structured datasets
-for AMF analysis.
+Upload TXT, PDF, CSV, or JSON files.
+
+AMF automatically converts uploaded
+documents into pipeline-compatible
+AMF JSON corpora.
 """)
+
+# ─────────────────────────────────────────────
+# HELPER FUNCTIONS
+# ─────────────────────────────────────────────
+
+def build_amf_json(text, source_name):
+
+    tokens = text.split()
+
+    records = []
+
+    for i, token in enumerate(tokens):
+
+        records.append({
+
+            "token_id": i + 1,
+
+            "token": token,
+
+            "position": i + 1
+
+        })
+
+    corpus = {
+
+        "metadata": {
+
+            "title": source_name,
+
+            "created_at":
+                datetime.now().isoformat(),
+
+            "source_files": [
+                source_name
+            ],
+
+            "token_count":
+                len(tokens)
+
+        },
+
+        "records": records
+
+    }
+
+    return corpus
 
 # ─────────────────────────────────────────────
 # FILE UPLOADER
@@ -70,16 +123,7 @@ uploaded_file = st.file_uploader(
         "pdf",
         "csv"
 
-    ],
-
-    help="""
-Supported formats:
-
-• TXT
-• JSON
-• PDF
-• CSV
-"""
+    ]
 
 )
 
@@ -91,7 +135,7 @@ if uploaded_file is not None:
 
     file_name = uploaded_file.name
 
-    file_extension = (
+    extension = (
         file_name
         .split(".")[-1]
         .lower()
@@ -101,76 +145,68 @@ if uploaded_file is not None:
         f"Loaded: {file_name}"
     )
 
-    # ─────────────────────────────────────────
-    # SESSION STORAGE
-    # ─────────────────────────────────────────
-
     st.session_state.uploaded_filename = (
         file_name
     )
 
+    extracted_text = ""
+
     # ─────────────────────────────────────────
-    # TXT FILES
+    # TXT
     # ─────────────────────────────────────────
 
-    if file_extension == "txt":
+    if extension == "txt":
 
-        try:
+        extracted_text = (
+            uploaded_file
+            .read()
+            .decode("utf-8")
+        )
 
-            content = uploaded_file.read().decode(
-                "utf-8"
-            )
+    # ─────────────────────────────────────────
+    # PDF
+    # ─────────────────────────────────────────
 
-            st.markdown("---")
+    elif extension == "pdf":
 
-            st.subheader(
-                "TXT Preview"
-            )
+        reader = PdfReader(
+            uploaded_file
+        )
 
-            st.text_area(
+        for page in reader.pages:
 
-                "Corpus Content",
+            text = page.extract_text()
 
-                content,
+            if text:
 
-                height=400
-
-            )
-
-            # SAVE TEMP FILE
-
-            with tempfile.NamedTemporaryFile(
-
-                delete=False,
-                suffix=".txt"
-
-            ) as tmp_file:
-
-                tmp_file.write(
-                    content.encode("utf-8")
+                extracted_text += (
+                    text + "\n"
                 )
 
-                st.session_state.corpus_path = (
-                    tmp_file.name
-                )
-
-            st.success(
-                "TXT corpus processed successfully."
-            )
-
-        except Exception as e:
-
-            st.error(
-                "TXT processing failed."
-            )
-
-            st.exception(e)
-
     # ─────────────────────────────────────────
-    # JSON FILES
+    # CSV
     # ─────────────────────────────────────────
 
-    elif file_extension == "json":
+    elif extension == "csv":
+
+        df = pd.read_csv(
+            uploaded_file
+        )
+
+        extracted_text = " ".join(
+
+            df.astype(str)
+            .fillna("")
+            .values
+            .flatten()
+
+        )
+
+    # ─────────────────────────────────────────
+    # JSON
+    # ─────────────────────────────────────────
+
+    elif extension == "json":
 
         try:
 
@@ -178,15 +214,9 @@ if uploaded_file is not None:
                 uploaded_file
             )
 
-            st.markdown("---")
-
-            st.subheader(
-                "JSON Preview"
+            st.success(
+                "AMF JSON corpus loaded directly."
             )
-
-            st.json(data)
-
-            # SAVE TEMP FILE
 
             with tempfile.NamedTemporaryFile(
 
@@ -207,171 +237,115 @@ if uploaded_file is not None:
                     tmp_file.name
                 )
 
-            st.success(
-                "JSON corpus processed successfully."
-            )
+            st.json(data)
+
+            st.stop()
 
         except Exception as e:
 
             st.error(
-                "JSON processing failed."
+                "Invalid JSON corpus."
             )
 
             st.exception(e)
 
-    # ─────────────────────────────────────────
-    # PDF FILES
-    # ─────────────────────────────────────────
-
-    elif file_extension == "pdf":
-
-        try:
-
-            reader = PdfReader(
-                uploaded_file
-            )
-
-            extracted_text = ""
-
-            total_pages = len(
-                reader.pages
-            )
-
-            for page in reader.pages:
-
-                text = page.extract_text()
-
-                if text:
-
-                    extracted_text += (
-                        text + "\n"
-                    )
-
-            st.markdown("---")
-
-            st.subheader(
-                "PDF Metadata"
-            )
-
-            col1, col2 = st.columns(2)
-
-            with col1:
-
-                st.metric(
-                    "Pages",
-                    total_pages
-                )
-
-            with col2:
-
-                st.metric(
-                    "Characters",
-                    len(extracted_text)
-                )
-
-            st.markdown("---")
-
-            st.subheader(
-                "Extracted PDF Text"
-            )
-
-            st.text_area(
-
-                "PDF Content",
-
-                extracted_text,
-
-                height=500
-
-            )
-
-            # SAVE TEMP FILE
-
-            with tempfile.NamedTemporaryFile(
-
-                delete=False,
-                suffix=".txt"
-
-            ) as tmp_file:
-
-                tmp_file.write(
-
-                    extracted_text.encode(
-                        "utf-8"
-                    )
-
-                )
-
-                st.session_state.corpus_path = (
-                    tmp_file.name
-                )
-
-            st.success(
-                "PDF processed successfully."
-            )
-
-        except Exception as e:
-
-            st.error(
-                "PDF extraction failed."
-            )
-
-            st.exception(e)
+            st.stop()
 
     # ─────────────────────────────────────────
-    # CSV FILES
+    # BUILD AMF JSON
     # ─────────────────────────────────────────
 
-    elif file_extension == "csv":
+    try:
 
-        try:
+        corpus = build_amf_json(
 
-            import pandas as pd
+            extracted_text,
 
-            df = pd.read_csv(
-                uploaded_file
+            file_name
+
+        )
+
+        # SAVE TEMP JSON
+
+        with tempfile.NamedTemporaryFile(
+
+            delete=False,
+            suffix=".json",
+            mode="w",
+            encoding="utf-8"
+
+        ) as tmp_file:
+
+            json.dump(
+
+                corpus,
+
+                tmp_file,
+
+                indent=2
+
             )
 
-            st.markdown("---")
-
-            st.subheader(
-                "CSV Preview"
+            st.session_state.corpus_path = (
+                tmp_file.name
             )
 
-            st.dataframe(
-                df,
-                use_container_width=True
+        # ─────────────────────────────────────
+        # DISPLAY
+        # ─────────────────────────────────────
+
+        st.markdown("---")
+
+        st.subheader(
+            "Converted AMF Corpus"
+        )
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            st.metric(
+
+                "Tokens",
+
+                corpus["metadata"][
+                    "token_count"
+                ]
+
             )
 
-            # SAVE TEMP FILE
+        with col2:
 
-            with tempfile.NamedTemporaryFile(
+            st.metric(
 
-                delete=False,
-                suffix=".csv"
+                "Records",
 
-            ) as tmp_file:
-
-                df.to_csv(
-                    tmp_file.name,
-                    index=False
+                len(
+                    corpus["records"]
                 )
 
-                st.session_state.corpus_path = (
-                    tmp_file.name
-                )
-
-            st.success(
-                "CSV corpus processed successfully."
             )
 
-        except Exception as e:
+        st.markdown("---")
 
-            st.error(
-                "CSV processing failed."
-            )
+        st.subheader(
+            "Corpus Preview"
+        )
 
-            st.exception(e)
+        st.json(corpus)
+
+        st.success("""
+Automatic AMF corpus conversion
+completed successfully.
+""")
+
+    except Exception as e:
+
+        st.error(
+            "Corpus conversion failed."
+        )
+
+        st.exception(e)
 
 # ─────────────────────────────────────────────
 # SESSION STATUS
@@ -387,7 +361,7 @@ with col1:
 
     st.metric(
 
-        "Corpus Loaded",
+        "Corpus Ready",
 
         (
             "YES"
@@ -401,7 +375,7 @@ with col2:
 
     st.metric(
 
-        "Uploaded File",
+        "File",
 
         (
             st.session_state.uploaded_filename
@@ -412,24 +386,24 @@ with col2:
     )
 
 # ─────────────────────────────────────────────
-# FUTURE INGESTION
+# FUTURE AI LAYERS
 # ─────────────────────────────────────────────
 
 st.markdown("---")
 
-st.subheader("Future Corpus Intelligence")
+st.subheader("Future AI Ingestion")
 
 st.info("""
 Future versions may support:
 
 - OCR manuscript extraction
 - semantic embeddings
-- vector database indexing
-- multilingual parsing
-- folio segmentation
-- manuscript entity extraction
-- AI-assisted corpus reconstruction
-- automated codicological tagging
+- vector search
+- multilingual corpora
+- AI-assisted parsing
+- manuscript segmentation
+- codicological tagging
+- adaptive corpus reconstruction
 """)
 
 # ─────────────────────────────────────────────
@@ -440,6 +414,5 @@ st.markdown("---")
 
 st.caption("""
 AMF Corpus Loader
-Experimental Research Corpus
-Ingestion Environment
+Automatic Corpus Conversion Engine
 """)
