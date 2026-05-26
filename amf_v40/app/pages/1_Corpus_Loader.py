@@ -1,6 +1,6 @@
 # ─────────────────────────────────────────────
 # AMF CORPUS LOADER
-# Schema-Compatible Automatic Conversion Engine
+# Backend-Compatible Automatic Conversion Engine
 # ─────────────────────────────────────────────
 
 import streamlit as st
@@ -70,15 +70,17 @@ pipeline-compatible JSON format.
 
 def build_amf_json(text, source_name):
 
+    # TOKENIZE
+
     tokens = text.split()
 
     records = []
 
     for i, token in enumerate(tokens):
 
-        records.append({
+        # BACKEND-SAFE TOKEN RECORD
 
-            # Minimal schema-safe structure
+        records.append({
 
             "token_id": i + 1,
 
@@ -89,7 +91,7 @@ def build_amf_json(text, source_name):
         })
 
     # ─────────────────────────────────────────
-    # BACKEND-COMPATIBLE STRUCTURE
+    # BACKEND-COMPATIBLE METADATA
     # ─────────────────────────────────────────
 
     corpus = {
@@ -98,7 +100,10 @@ def build_amf_json(text, source_name):
 
             "source_files": [
                 source_name
-            ]
+            ],
+
+            "transcription_version":
+                "AMF_AUTO_1.0"
 
         },
 
@@ -200,6 +205,10 @@ if uploaded_file is not None:
                 uploaded_file
             )
 
+            total_pages = len(
+                reader.pages
+            )
+
             for page in reader.pages:
 
                 text = page.extract_text()
@@ -209,6 +218,28 @@ if uploaded_file is not None:
                     extracted_text += (
                         text + "\n"
                     )
+
+            st.markdown("---")
+
+            st.subheader(
+                "PDF Extraction Summary"
+            )
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+
+                st.metric(
+                    "Pages",
+                    total_pages
+                )
+
+            with col2:
+
+                st.metric(
+                    "Characters",
+                    len(extracted_text)
+                )
 
         except Exception as e:
 
@@ -241,6 +272,17 @@ if uploaded_file is not None:
 
             )
 
+            st.markdown("---")
+
+            st.subheader(
+                "CSV Preview"
+            )
+
+            st.dataframe(
+                df.head(20),
+                use_container_width=True
+            )
+
         except Exception as e:
 
             st.error(
@@ -266,8 +308,6 @@ if uploaded_file is not None:
             st.success(
                 "AMF JSON corpus loaded directly."
             )
-
-            # SAVE DIRECTLY
 
             with tempfile.NamedTemporaryFile(
 
@@ -329,7 +369,7 @@ if uploaded_file is not None:
 
         )
 
-        # SAVE TEMP JSON FILE
+        # SAVE TEMP JSON
 
         with tempfile.NamedTemporaryFile(
 
@@ -367,7 +407,7 @@ if uploaded_file is not None:
             "Converted AMF Corpus"
         )
 
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
 
         with col1:
 
@@ -392,6 +432,16 @@ if uploaded_file is not None:
                         "source_files"
                     ]
                 )
+
+            )
+
+        with col3:
+
+            st.metric(
+
+                "Schema",
+
+                "AMF Compatible"
 
             )
 
@@ -487,6 +537,6 @@ st.markdown("---")
 
 st.caption("""
 AMF Corpus Loader
-Schema-Compatible Automatic
+Backend-Compatible Automatic
 Corpus Conversion Engine
 """)
