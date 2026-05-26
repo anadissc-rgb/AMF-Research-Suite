@@ -1,44 +1,61 @@
 # ─────────────────────────────────────────────
-# AMF v4.0 — Stable Production Requirements
+# AMF v4.0 — Stable Streamlit Production Build
+# Amanuensis Model Framework
+# Optimized for:
+# - Streamlit Cloud
+# - Statistical Analysis
+# - Knowledge Graphs
+# - Manuscript Intelligence
+# - Plotly Dashboards
 # ─────────────────────────────────────────────
 
-# CORE STACK
+--upgrade pip
+
+# ─────────────────────────────────────────────
+# CORE SCIENTIFIC STACK
+# ─────────────────────────────────────────────
+
 numpy==1.26.4
 pandas==2.2.1
 scipy==1.12.0
 
-# STATISTICS
+# ─────────────────────────────────────────────
+# STATISTICAL ANALYSIS
+# ─────────────────────────────────────────────
+
 statsmodels==0.14.1
 powerlaw==1.5
 
+# ─────────────────────────────────────────────
 # VISUALIZATION
+# ─────────────────────────────────────────────
+
 matplotlib==3.8.3
 plotly==5.19.0
 kaleido==0.2.1
 Pillow==10.2.0
 
+# ─────────────────────────────────────────────
 # NETWORK ANALYSIS
+# ─────────────────────────────────────────────
+
 networkx==3.2.1
 
+# ─────────────────────────────────────────────
 # STREAMLIT
+# ─────────────────────────────────────────────
+
 streamlit==1.32.2
 
-# NLP
+# ─────────────────────────────────────────────
+# NLP / TEXT PROCESSING
+# ─────────────────────────────────────────────
+
 nltk==3.8.1
 
-# CONFIG
+# ─────────────────────────────────────────────
+# CONFIGURATION / VALIDATION
+# ─────────────────────────────────────────────
+
 pyyaml==6.0.1
 pydantic==2.6.1
-
-# NOTEBOOKS
-jupyter==1.0.0
-ipykernel==6.29.2
-
-# TESTING
-pytest==8.0.1
-pytest-cov==4.1.0
-
-# QUALITY
-ruff==0.2.2
-mypy==1.8.0
-black==24.2.0
